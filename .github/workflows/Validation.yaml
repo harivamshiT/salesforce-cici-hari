@@ -1,0 +1,50 @@
+name: Salesforce CICD
+
+on:
+    pull_request:
+      types: [opened, synchronize]
+    push:
+      branches:
+        - main
+    
+jobs:
+    validate:
+        runs-on: ubuntu-latest
+
+    steps:
+        -name: Checkout Repo
+         uses: actions/checkout@v3
+
+        -name: Install Salesforce CLI
+         run: |
+            echo "Installing Salesforce CLI"
+            wget https://developer.salesforce.com/media/salesforce-cli/sf/channels/stable/sf-linux-x64.tar.xz
+            mkdir -p ~/cli/sf
+            tar xJf sf-linux-x64.tar.xz -C ~/cli/sf --strip-components 1
+            export PATH=~/cli/sf/bin:$PATH
+            echo "Installing Delta Plugin"
+            sfdx plugins:install sfdx-git-delta
+            sf --version
+            sf plugins --core
+
+        -name: Generate Package.xml
+         run: |
+            HEAD_COMMIT_ID=$(git rev-parse origin/${{ github.head_ref }})
+            BASE_COMMIT_ID=$(git rev-parse origin/${{ github.base_ref }})
+            echo "SOURCE_BRANCH"
+            echo "HEAD_COMMIT_ID"
+            echo "TARGET_BRANCH"
+            echo "BASE_COMMIT_ID"
+            sfdx sgd:source:delta --to HEAD_COMMIT_ID --from BASE_COMMIT_ID -i exclude.txt --output  '.'
+            echo " Below are package.xml Components"
+            cat package/package.xml
+            echo "========================================================="
+            echo " Below are destructive package.xml Components"
+            cat destructiveChanges/destructiveChanges.xml
+
+        -name: Validate
+         run: |
+            SFDX_AUTH_URL="force://PlatformCLI::5Aep861kFI7dkvKqCo2fts_thtdQYaDmQ_fcMxfhg6PR6hZ_quq36snLmoz_RaDutLw2hvS2.dlsXC7uL5SAPfd@platform-platform-70602-dev-ed.scratch.my.salesforce.com"
+            echo $SFDX_AUTH_URL > auth-url.txt
+            sf org login sfdx-url --sfdx-url-file auth-url.txt
+            sfdx force:source:deploy --manifest package/package.xml --targetusername test-4xal8coxzfh8@example.com  --checkonly
