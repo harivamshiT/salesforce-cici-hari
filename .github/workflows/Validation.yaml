@@ -25,7 +25,7 @@ jobs:
                 tar xJf sf-linux-x64.tar.xz -C ~/cli/sf --strip-components 1
                 export PATH=~/cli/sf/bin:$PATH
                 echo "Installing Delta Plugin"
-                sfdx plugins:install sfdx-git-delta
+                echo "y" | sfdx plugins:install sfdx-git-delta
                 sf --version
                 sf plugins --core
 
