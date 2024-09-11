@@ -35,12 +35,12 @@ jobs:
             run: |
                 SOURCE_BRANCH="${{ github.head_ref }}"
                 TARGET_BRANCH="${{ github.base_ref }}"
-                echo "SOURCE_BRANCH=${{ github.head_ref }}" >> $GITHUB_ENV
-                echo "TARGET_BRANCH=${{ github.base_ref }}" >> $GITHUB_ENV
                 echo "Pull Request : SOURCE_BRANCH-$SOURCE_BRANCH - - - TARGET_BRANCH-$TARGET_BRANCH"
-                HEAD_COMMIT_ID=$(git rev-parse origin/$SOURCE_BRANCH) >> $GITHUB_ENV
-                BASE_COMMIT_ID=$(git rev-parse origin/$TARGET_BRANCH) >> $GITHUB_ENV
-                sfdx sgd:source:delta --to ${{github.head_ref}} --from ${{github.base_ref}} --output '.'
+                HEAD_COMMIT_ID=$(git rev-parse origin/${{ github.head_ref }})
+                echo "HEAD_COMMIT_ID =$HEAD_COMMIT_ID" >> $GITHUB_ENV
+                BASE_COMMIT_ID=$(git rev-parse origin/${{ github.base_ref }})
+                echo "BASE_COMMIT_ID =$BASE_COMMIT_ID" >> $GITHUB_ENV
+                sfdx sgd:source:delta --to "${{env.BASE_COMMIT_ID}}" --from "${{env.HEAD_COMMIT_ID}}" --output '.'
                 echo " Below are package.xml Components"
                 cat package/package.xml
                 echo "========================================================="
