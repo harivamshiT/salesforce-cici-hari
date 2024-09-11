@@ -36,8 +36,8 @@ jobs:
                 echo "SOURCE_BRANCH=${{ github.head_ref }}" >> $GITHUB_ENV
                 echo "TARGET_BRANCH=${{ github.base_ref }}" >> $GITHUB_ENV
                 echo "Pull Request : SOURCE_BRANCH-$SOURCE_BRANCH - - - TARGET_BRANCH-$TARGET_BRANCH"
-                HEAD_COMMIT_ID=$(git rev-parse origin/${{env.SOURCE_BRANCH}}) >> $GITHUB_ENV
-                BASE_COMMIT_ID=$(git rev-parse origin/${{env.TARGET_BRANCH}}) >> $GITHUB_ENV
+                HEAD_COMMIT_ID=$(git rev-parse origin/$SOURCE_BRANCH) >> $GITHUB_ENV
+                BASE_COMMIT_ID=$(git rev-parse origin/$TARGET_BRANCH) >> $GITHUB_ENV
                 echo "Installing Delta Plugin"
                 echo "y" | sfdx plugins:install sfdx-git-delta
                 sfdx sgd:source:delta --to env.HEAD_COMMIT_ID --from env.BASE_COMMIT_ID -i exclude.txt --output  .
