@@ -26,10 +26,9 @@ jobs:
                 export PATH=~/cli/sf/bin:$PATH
                 sf --version
                 sf plugins --core
-
           - name: Generate Package.xml
             run: env
-            - name: Pull Request
+          - name: Pull Request
             if: github.event_name == 'pull_request'
             run: |
                 SOURCE_BRANCH="${{ github.head_ref }}"
