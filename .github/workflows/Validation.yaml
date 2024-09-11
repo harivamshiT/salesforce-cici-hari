@@ -24,6 +24,8 @@ jobs:
                 mkdir -p ~/cli/sf
                 tar xJf sf-linux-x64.tar.xz -C ~/cli/sf --strip-components 1
                 export PATH=~/cli/sf/bin:$PATH
+                echo "Installing Delta Plugin"
+                echo "y" | sfdx plugins:install sfdx-git-delta
                 sf --version
                 sf plugins --core
           - name: Generate Package.xml
@@ -38,8 +40,6 @@ jobs:
                 echo "Pull Request : SOURCE_BRANCH-$SOURCE_BRANCH - - - TARGET_BRANCH-$TARGET_BRANCH"
                 HEAD_COMMIT_ID=$(git rev-parse origin/$SOURCE_BRANCH) >> $GITHUB_ENV
                 BASE_COMMIT_ID=$(git rev-parse origin/$TARGET_BRANCH) >> $GITHUB_ENV
-                echo "Installing Delta Plugin"
-                echo "y" | sfdx plugins:install sfdx-git-delta
                 sfdx sgd:source:delta --to env.HEAD_COMMIT_ID --from env.BASE_COMMIT_ID -i exclude.txt --output  .
                 echo " Below are package.xml Components"
                 cat package/package.xml
