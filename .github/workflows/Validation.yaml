@@ -28,9 +28,7 @@ jobs:
                 echo "HEAD_COMMIT_ID =$HEAD_COMMIT_ID" >> $GITHUB_ENV
                 BASE_COMMIT_ID=$(git rev-parse origin/${{ github.base_ref }})
                 echo "BASE_COMMIT_ID =$BASE_COMMIT_ID" >> $GITHUB_ENV
-          - name: Generating Delta Package
-            run: |
-                sh scripts/shell/deltaComponentRetrieve.sh ${HEAD_COMMIT_ID} ${BASE_COMMIT_ID}
+                sh scripts/shell/deltaComponentRetrieve.sh $HEAD_COMMIT_ID $BASE_COMMIT_ID
                 echo " Below are package.xml Components"
                 cat package/package.xml
                 echo "========================================================="
