@@ -16,16 +16,6 @@ jobs:
             with:
                 fetch-depth: 0
                 ref: "${{ github.head_ref }}"
-
-          - name: Install Salesforce CLI
-            run: |
-                echo "Installing Salesforce CLI"
-                wget https://developer.salesforce.com/media/salesforce-cli/sf/channels/stable/sf-linux-x64.tar.xz
-                mkdir -p ~/cli/sf
-                tar xJf sf-linux-x64.tar.xz -C ~/cli/sf --strip-components 1
-                export PATH=~/cli/sf/bin:$PATH
-                sf --version
-                sf plugins --core
           - name: Fetching Commits
             if: github.event_name == 'pull_request'
             run: |
@@ -40,6 +30,11 @@ jobs:
                 echo "BASE_COMMIT_ID =$BASE_COMMIT_ID" >> $GITHUB_ENV
           - name: Generating Delta Package
             run: |
+                echo "Installing Salesforce CLI"
+                wget https://developer.salesforce.com/media/salesforce-cli/sf/channels/stable/sf-linux-x64.tar.xz
+                mkdir -p ~/cli/sf
+                tar xJf sf-linux-x64.tar.xz -C ~/cli/sf --strip-components 1
+                export PATH=~/cli/sf/bin:$PATH
                 echo "Installing Delta Plugin"
                 echo "y" | sfdx plugins:install sfdx-git-delta
                 sfdx sgd:source:delta --to ${{env.BASE_COMMIT_ID}} --from ${{env.HEAD_COMMIT_ID}} --output '.'
