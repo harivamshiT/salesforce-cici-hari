@@ -40,7 +40,7 @@ jobs:
                 echo "Generating the Delta"
                 echo "Base Commit: $BASE_COMMIT_ID"
                 echo "Head Commit: $HEAD_COMMIT_ID"
-                sfdx sgd:source:delta --to "$BASE_COMMIT_ID" --from "$HEAD_COMMIT_ID" --output '.'
+                sfdx sgd:source:delta --to $BASE_COMMIT_ID --from $HEAD_COMMIT_ID --output '.'
                 echo " Below are package.xml Components"
                 cat package/package.xml
                 echo "========================================================="
