@@ -37,7 +37,8 @@ jobs:
                 export PATH=~/cli/sf/bin:$PATH
                 echo "Installing Delta Plugin"
                 echo "y" | sfdx plugins:install sfdx-git-delta
-                sfdx sgd:source:delta --to ${{env.BASE_COMMIT_ID}} --from ${{env.HEAD_COMMIT_ID}} --output '.'
+                echo "Generating the Delta"
+                sfdx sgd:source:delta --to "${{env.BASE_COMMIT_ID}}" --from "${{env.HEAD_COMMIT_ID}}" --output '.'
                 echo " Below are package.xml Components"
                 cat package/package.xml
                 echo "========================================================="
