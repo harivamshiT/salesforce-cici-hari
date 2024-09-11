@@ -40,7 +40,7 @@ jobs:
                 echo "Pull Request : SOURCE_BRANCH-$SOURCE_BRANCH - - - TARGET_BRANCH-$TARGET_BRANCH"
                 HEAD_COMMIT_ID=$(git rev-parse origin/$SOURCE_BRANCH) >> $GITHUB_ENV
                 BASE_COMMIT_ID=$(git rev-parse origin/$TARGET_BRANCH) >> $GITHUB_ENV
-                sfdx sgd:source:delta --to env.HEAD_COMMIT_ID --from env.BASE_COMMIT_ID -i exclude.txt --output  .
+                sfdx sgd:source:delta --to $HEAD_COMMIT_ID --from $BASE_COMMIT_ID -i exclude.txt --output  .
                 echo " Below are package.xml Components"
                 cat package/package.xml
                 echo "========================================================="
