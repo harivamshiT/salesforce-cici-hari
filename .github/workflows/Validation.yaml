@@ -24,13 +24,9 @@ jobs:
                 mkdir -p ~/cli/sf
                 tar xJf sf-linux-x64.tar.xz -C ~/cli/sf --strip-components 1
                 export PATH=~/cli/sf/bin:$PATH
-                echo "Installing Delta Plugin"
-                echo "y" | sfdx plugins:install sfdx-git-delta
                 sf --version
                 sf plugins --core
-          - name: Generate Package.xml
-            run: env
-          - name: Pull Request
+          - name: Fetching Commits
             if: github.event_name == 'pull_request'
             run: |
                 SOURCE_BRANCH="${{ github.event.pull_request.head.ref }}"
@@ -42,6 +38,10 @@ jobs:
                 echo "HEAD_COMMIT_ID =$HEAD_COMMIT_ID" >> $GITHUB_ENV
                 BASE_COMMIT_ID=$(git rev-parse origin/${{ github.base_ref }})
                 echo "BASE_COMMIT_ID =$BASE_COMMIT_ID" >> $GITHUB_ENV
+          - name: Generating Delta Package
+            run: |
+                echo "Installing Delta Plugin"
+                echo "y" | sfdx plugins:install sfdx-git-delta
                 sfdx sgd:source:delta --to ${{env.BASE_COMMIT_ID}} --from ${{env.HEAD_COMMIT_ID}} --output '.'
                 echo " Below are package.xml Components"
                 cat package/package.xml
