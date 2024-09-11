@@ -28,16 +28,20 @@ jobs:
                 sf plugins --core
 
           - name: Generate Package.xml
+            run: env
+            - name: Pull Request
+            if: github.event_name == 'pull_request'
             run: |
-                HEAD_COMMIT_ID=$(git rev-parse origin/${{ github.head_ref }})
-                BASE_COMMIT_ID=$(git rev-parse origin/${{ github.base_ref }})
-                echo "SOURCE_BRANCH"
-                echo HEAD_COMMIT_ID
-                echo "TARGET_BRANCH"
-                echo BASE_COMMIT_ID
+                SOURCE_BRANCH="${{ github.head_ref }}"
+                TARGET_BRANCH="${{ github.base_ref }}"
+                echo "SOURCE_BRANCH=${{ github.head_ref }}" >> $GITHUB_ENV
+                echo "TARGET_BRANCH=${{ github.base_ref }}" >> $GITHUB_ENV
+                echo "Pull Request : SOURCE_BRANCH-$SOURCE_BRANCH - - - TARGET_BRANCH-$TARGET_BRANCH"
+                HEAD_COMMIT_ID=$(git rev-parse origin/${{env.SOURCE_BRANCH}}) >> $GITHUB_ENV
+                BASE_COMMIT_ID=$(git rev-parse origin/${{env.TARGET_BRANCH}}) >> $GITHUB_ENV
                 echo "Installing Delta Plugin"
                 echo "y" | sfdx plugins:install sfdx-git-delta
-                sfdx sgd:source:delta --to HEAD_COMMIT_ID --from BASE_COMMIT_ID -i exclude.txt --output  .
+                sfdx sgd:source:delta --to env.HEAD_COMMIT_ID --from env.BASE_COMMIT_ID -i exclude.txt --output  .
                 echo " Below are package.xml Components"
                 cat package/package.xml
                 echo "========================================================="
