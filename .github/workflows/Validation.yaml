@@ -24,8 +24,6 @@ jobs:
                 mkdir -p ~/cli/sf
                 tar xJf sf-linux-x64.tar.xz -C ~/cli/sf --strip-components 1
                 export PATH=~/cli/sf/bin:$PATH
-                echo "Installing Delta Plugin"
-                echo "y" | sfdx plugins:install sfdx-git-delta
                 sf --version
                 sf plugins --core
 
@@ -34,10 +32,12 @@ jobs:
                 HEAD_COMMIT_ID=$(git rev-parse origin/${{ github.head_ref }})
                 BASE_COMMIT_ID=$(git rev-parse origin/${{ github.base_ref }})
                 echo "SOURCE_BRANCH"
-                echo "HEAD_COMMIT_ID"
+                echo HEAD_COMMIT_ID
                 echo "TARGET_BRANCH"
-                echo "BASE_COMMIT_ID"
-                sfdx sgd:source:delta --to HEAD_COMMIT_ID --from BASE_COMMIT_ID -i exclude.txt --output  '.'
+                echo BASE_COMMIT_ID
+                echo "Installing Delta Plugin"
+                echo "y" | sfdx plugins:install sfdx-git-delta
+                sfdx sgd:source:delta --to HEAD_COMMIT_ID --from BASE_COMMIT_ID -i exclude.txt --output  .
                 echo " Below are package.xml Components"
                 cat package/package.xml
                 echo "========================================================="
