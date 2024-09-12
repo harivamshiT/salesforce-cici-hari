@@ -16,6 +16,11 @@ jobs:
             with:
                 fetch-depth: 0
                 ref: "${{ github.head_ref }}"
+          - name: Install SFDX CLI and Scanner
+            run: |
+                npm install sfdx-cli -g
+                sfdx plugins:install @salesforce/sfdx-scanner
+                
           - name: Fetching Commits
             if: github.event_name == 'pull_request'
             run: |
