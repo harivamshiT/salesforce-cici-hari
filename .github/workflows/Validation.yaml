@@ -18,7 +18,7 @@ jobs:
                 ref: "${{ github.head_ref }}"
           - name: Install SFDX CLI and Scanner
             run: |
-                echo "TARGET_COMMIT_ID=${{var.CI_COMMIT}}"
+                echo "TARGET_COMMIT_ID=${{env.CI_COMMIT}}"
                 npm install @salesforce/cli --global
                 sfdx plugins:install @salesforce/sfdx-scanner
                 
