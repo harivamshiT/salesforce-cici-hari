@@ -1,0 +1,110 @@
+name: Salesforce CI/CD Workflow
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    branches:
+      - main
+  
+jobs:
+  SFDX_Package_Prepartaion:
+    runs-on: ubuntu-latest
+    steps:        
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '16'
+    
+      - name: Checkout GitHub
+        uses: actions/checkout@v3
+        with:
+            fetch-depth: 0
+            ref: "${{ github.head_ref }}"
+
+      - name: Pull Request Details
+        if: github.event_name == 'pull_request'
+        run: |
+            SOURCE_BRANCH="${{ github.head_ref }}"
+            TARGET_BRANCH="${{ github.base_ref }}"
+            echo "SOURCE_BRANCH=${{ github.head_ref }}" >> $GITHUB_ENV
+            echo "TARGET_BRANCH=${{ github.base_ref }}" >> $GITHUB_ENV
+            echo "Pull Request : SOURCE_BRANCH-$SOURCE_BRANCH - - - TARGET_BRANCH-$TARGET_BRANCH"
+
+      - name: Source Branch Operations
+        if: github.event_name == 'pull_request'
+        uses: actions/checkout@v3
+        with:
+          repository: ${{ github.repository }}
+          path: SourceBranchPath
+          ref: ${{env.SOURCE_BRANCH}}
+
+      - name: Target Branch Operations
+        if: github.event_name == 'pull_request'
+        uses: actions/checkout@v3
+        with:
+          repository: ${{ github.repository }}
+          path: TargetBranchPath
+          ref: ${{ env.TARGET_BRANCH }}
+
+      - name : Commit ID extractions for PR
+        if: github.event_name == 'pull_request'
+        run: |
+          sh scripts/shell/commitExtractPR.sh
+
+      - name: Package preparation
+        run: |
+          sh scripts/shell/deltaComponentRetrieve.sh ${{env.SOURCE_COMMIT_ID}} ${{env.TARGET_COMMIT_ID}}
+        shell: bash
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+            name: sf-package
+            path: package/*
+
+  Validate-pull-request:
+    name: Validation
+    needs: SFDX_Package_Prepartaion
+    runs-on: ubuntu-latest    
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      - name: Install Salesforce CLI
+        run: |
+            npm install @salesforce/cli --global
+
+      - name: Download Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: sf-package
+          path: package/
+              
+      - name: Display Package
+        run: |
+          echo "Displaying the Package.xml"
+          cat package/package.xml
+          echo "Displaying the destructiveChanges.xml"
+          cat package/destructiveChanges.xml
+
+      - name: Validate to CI
+        run: |
+          SFDX_AUTH_URL="force://PlatformCLI::5Aep861kFI7dkvKqCo2fts_thtdQYaDmQ_fcMxfhg6PR6hZ_quq36snLmoz_RaDutLw2hvS2.dlsXC7uL5SAPfd@platform-platform-70602-dev-ed.scratch.my.salesforce.com"
+          echo $SFDX_AUTH_URL > auth-url-CI.txt
+          sf org login sfdx-url --sfdx-url-file auth-url-CI.txt
+          sfdx force:source:deploy --manifest package/package.xml --targetusername test-4xal8coxzfh8@example.com --postdestructivechanges package/destructiveChanges.xml --checkonly
+          
+      # - name: Validate to BAT
+      #   run: |
+      #     SFDX_AUTH_URL="force://PlatformCLI::5Aep8611TJPZ6lPlO_8In3OSJZWrV6sZoHTxAoXpQY1P9vZuggQhOfyzCrJK4tKRZhxVoEOsnFrVBwFfvpr0tJr@beyondtrustcorp--bat.sandbox.my.salesforce.com"
+      #     echo $SFDX_AUTH_URL > auth-url-BAT.txt
+      #     sf org login sfdx-url --sfdx-url-file auth-url-BAT.txt
+      #     sfdx force:source:deploy --manifest package/package.xml --targetusername tharivamshi@beyondtrust.com.bat --postdestructivechanges package/destructiveChanges.xml --checkonly
+          
+     # - name: Validate to DM
+      #  run: |
+       #   SFDX_AUTH_URL="force://PlatformCLI::5Aep8616LhFaTvPjFZwf.1wt3Gh3PpfV7eq8MVLPg4kxhk7GCZ8z7NeeBPdIic6yCBt7PfNDk.eUWVmi11t3Ka8@beyondtrustcorp--dm.sandbox.my.salesforce.com"
+        #  echo $SFDX_AUTH_URL > auth-url-DM.txt 
+         # sf org login sfdx-url --sfdx-url-file auth-url-DM.txt
+          #sfdx force:source:deploy --manifest package/package.xml --targetusername tharivamshi@beyondtrust.com.dm --postdestructivechanges package/destructiveChanges.xml --checkonly --ignore-warnings
+          

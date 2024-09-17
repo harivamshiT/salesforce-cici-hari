@@ -1,0 +1,105 @@
+name: Salesforce CI/CD Workflow
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  SFDX_Package_Prepartaion:
+    runs-on: ubuntu-latest
+    steps:        
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '16'
+
+      - name: Checkout GitHub
+        uses: actions/checkout@v3
+        with:
+            fetch-depth: 0
+            ref: "${{ github.head_ref }}"
+
+      - name: Commit ID Extraction from Last Successful Workflow
+        id: fetch_latest_run_or_commit
+        shell: bash
+        run: |
+          # Get the branch from the inputs
+          branch="${{github.ref_name}}"
+          github_token=${{ secrets.MY_GITHUB_TOKEN }}
+          # Fetch the list of successful workflow runs for the specified branch
+          response=$(gh api \
+            --method GET \
+            -H "Accept: application/vnd.github.v3+json" \
+            /repos/${{ github.repository }}/actions/runs \
+            -q ".workflow_runs[] | select(.head_branch == \"$branch\" and .event == \"push\" and .conclusion == \"success\") | .head_sha" \
+            --paginate)
+
+          # Extract the commit SHA where the workflow run was triggered
+          commit_hash=$(echo "$response" | head -n 1)
+
+          # Check if a commit SHA was found
+          if [ -z "$commit_hash" ]; then
+            echo "No successful workflow runs found on branch '$branch'. Fetching latest commit."
+            exit 1
+          fi
+
+          echo "TARGET_COMMIT_ID=$commit_hash" >> $GITHUB_ENV
+          echo "SOURCE_COMMIT_ID=${{github.sha}}" >> $GITHUB_ENV
+
+        env:
+          GH_TOKEN: "${{secrets.MY_GITHUB_TOKEN}}"
+
+      - name: Package preparation
+        run: |
+          sh scripts/shell/deltaComponentRetrieve.sh ${{env.SOURCE_COMMIT_ID}} ${{env.TARGET_COMMIT_ID}}
+        shell: bash
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+            name: sf-package
+            path: package/*
+
+  Deploy-pull-request-merge:
+    name: Deployment
+    needs: SFDX_Package_Prepartaion
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      - name: Install Salesforce CLI
+        run: |
+            npm install @salesforce/cli --global
+
+      - name: Download Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: sf-package
+          path: package/
+          
+      - name: Display Package
+        run: cat package/package.xml
+
+      - name: Deploying to CI
+        run: |
+          SFDX_AUTH_URL="force://PlatformCLI::5Aep861kFI7dkvKqCo2fts_thtdQYaDmQ_fcMxfhg6PR6hZ_quq36snLmoz_RaDutLw2hvS2.dlsXC7uL5SAPfd@platform-platform-70602-dev-ed.scratch.my.salesforce.com"
+          echo $SFDX_AUTH_URL > auth-url-CI.txt
+          sf org login sfdx-url --sfdx-url-file auth-url-CI.txt
+          sfdx force:source:deploy --manifest package/package.xml --targetusername tharivamshi@beyondtrust.com.ci  --checkonly
+          
+      # - name: Deploying to BAT
+      #   run: |
+      #     SFDX_AUTH_URL="force://PlatformCLI::5Aep8611TJPZ6lPlO_8In3OSJZWrV6sZoHTxAoXpQY1P9vZuggQhOfyzCrJK4tKRZhxVoEOsnFrVBwFfvpr0tJr@beyondtrustcorp--bat.sandbox.my.salesforce.com"
+      #     echo $SFDX_AUTH_URL > auth-url-BAT.txt
+      #     sf org login sfdx-url --sfdx-url-file auth-url-BAT.txt
+      #     sfdx force:source:deploy --manifest package/package.xml --targetusername tharivamshi@beyondtrust.com.bat  --checkonly
+          
+      # - name: Deploying to DM
+      #   run: |
+      #     SFDX_AUTH_URL="force://PlatformCLI::5Aep8616LhFaTvPjFZwf.1wt3Gh3PpfV7eq8MVLPg4kxhk7GCZ8z7NeeBPdIic6yCBt7PfNDk.eUWVmi11t3Ka8@beyondtrustcorp--dm.sandbox.my.salesforce.com"
+      #     echo $SFDX_AUTH_URL > auth-url-DM.txt 
+      #     sf org login sfdx-url --sfdx-url-file auth-url-DM.txt
+      #     sfdx force:source:deploy --manifest package/package.xml --targetusername tharivamshi@beyondtrust.com.dm  --checkonly
+          
