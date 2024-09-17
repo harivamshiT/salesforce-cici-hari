@@ -42,7 +42,6 @@ jobs:
           if [ -z "$commit_hash" ]; then
             echo "No successful workflow runs found on branch '$branch'. Fetching latest commit."
             commit_hash =$(git rev-parse HEAD^)
-            exit 1
           fi
 
           echo "TARGET_COMMIT_ID=$commit_hash" >> $GITHUB_ENV
