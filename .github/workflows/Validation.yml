@@ -91,3 +91,42 @@ jobs:
           cat package/package.xml
           echo "Displaying the destructiveChanges.xml"
           cat package/destructiveChanges.xml
+
+  check-time:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Get current UTC time and convert to IST
+        id: time-check
+        run: |
+          # Get current time in UTC
+          CURRENT_HOUR=$(date -u +"%H")
+          CURRENT_MINUTE=$(date -u +"%M")
+          echo "$CURRENT_HOUR"
+          echo "$CURRENT_MINUTE"
+          
+          # Convert UTC to IST (+5:30 offset)
+          IST_HOUR=$(( (CURRENT_HOUR + 5 + (CURRENT_MINUTE >= 30 ? 1 : 0)) % 24 ))
+          IST_MINUTE=$(( (CURRENT_MINUTE + 30) % 60 ))
+          
+          echo "IST Time: $IST_HOUR:$IST_MINUTE"
+          echo "IST_HOUR=$IST_HOUR" >> $GITHUB_ENV
+
+      - name: Validate PR timing
+        run: |
+          PR_TITLE="${{ github.event.pull_request.title }}"
+          IST_HOUR=${{ env.IST_HOUR }}
+
+          # Check if current time is within 9 AM - 5:59 PM IST
+          if [[ "$IST_HOUR" -ge 9 && "$IST_HOUR" -le 17 ]]; then
+            echo "PR is created within allowed time. ✅"
+            exit 0
+          fi
+
+          # Check if PR title contains "HIGH PRIORITY" or "BLOCKER"
+          if [[ "$PR_TITLE" =~ HIGH\ PRIORITY || "$PR_TITLE" =~ BLOCKER ]]; then
+            echo "PR is outside allowed time, but marked as HIGH PRIORITY or BLOCKER. ✅"
+            exit 0
+          fi
+
+          echo "PR creation outside allowed time and not marked as HIGH PRIORITY or BLOCKER. ❌"
+          exit 1
