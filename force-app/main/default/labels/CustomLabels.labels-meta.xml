@@ -35,4 +35,11 @@
         <shortDescription>Pte a subquery from an invalid relationship.</shortDescription>
         <value>Invalidrelationship for table.</value>
     </labels>
+    <labels>
+        <fullName>relationsp</fullName>
+        <language>en_US</language>
+        <protected>false</protected>
+        <shortDescription>Pte a subquery from an invalid relationship.</shortDescription>
+        <value> for table.</value>
+    </labels>
 </CustomLabels>
