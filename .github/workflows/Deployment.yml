@@ -41,7 +41,7 @@ jobs:
           # Check if a commit SHA was found
           if [ -z "$commit_hash" ]; then
             echo "No successful workflow runs found on branch '$branch'. Fetching latest commit."
-            exit 1
+            commit_hash =$(git rev-parse HEAD^)
           fi
 
           echo "TARGET_COMMIT_ID=$commit_hash" >> $GITHUB_ENV
