@@ -28,4 +28,11 @@
         <shortDescription>Presented when attempting to create a subquery from an invalid relationship.</shortDescription>
         <value>Invalid call to subselectQuery.  Invalid relationship for table.</value>
     </labels>
+    <labels>
+        <fullName>relationship</fullName>
+        <language>en_US</language>
+        <protected>false</protected>
+        <shortDescription>Pte a subquery from an invalid relationship.</shortDescription>
+        <value>Invalidrelationship for table.</value>
+    </labels>
 </CustomLabels>
