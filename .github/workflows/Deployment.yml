@@ -1,4 +1,4 @@
-name: Salesforce CI/CD Workflow
+name: Deployment
 
 on:
   push:
@@ -10,12 +10,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:        
       - name: Set up Node.js
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
-          node-version: '16'
+          node-version: '20'
 
       - name: Checkout GitHub
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
             fetch-depth: 0
             ref: "${{ github.head_ref }}"
@@ -48,7 +48,7 @@ jobs:
           echo "SOURCE_COMMIT_ID=${{github.sha}}" >> $GITHUB_ENV
 
         env:
-          GH_TOKEN: "${{secrets.MY_GITHUB_TOKEN}}"
+          GH_TOKEN: "${{secrets.L2O_GITHUB_TOKEN}}"
 
       - name: Package preparation
         run: |
@@ -66,7 +66,7 @@ jobs:
     needs: SFDX_Package_Prepartaion
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
       - name: Install Salesforce CLI
@@ -81,25 +81,3 @@ jobs:
           
       - name: Display Package
         run: cat package/package.xml
-
-      - name: Deploying to CI
-        run: |
-          SFDX_AUTH_URL="force://PlatformCLI::5Aep861kFI7dkvKqCo2fts_thtdQYaDmQ_fcMxfhg6PR6hZ_quq36snLmoz_RaDutLw2hvS2.dlsXC7uL5SAPfd@platform-platform-70602-dev-ed.scratch.my.salesforce.com"
-          echo $SFDX_AUTH_URL > auth-url-CI.txt
-          sf org login sfdx-url --sfdx-url-file auth-url-CI.txt
-          sfdx force:source:deploy --manifest package/package.xml --targetusername tharivamshi@beyondtrust.com.ci  --checkonly
-          
-      # - name: Deploying to BAT
-      #   run: |
-      #     SFDX_AUTH_URL="force://PlatformCLI::5Aep8611TJPZ6lPlO_8In3OSJZWrV6sZoHTxAoXpQY1P9vZuggQhOfyzCrJK4tKRZhxVoEOsnFrVBwFfvpr0tJr@beyondtrustcorp--bat.sandbox.my.salesforce.com"
-      #     echo $SFDX_AUTH_URL > auth-url-BAT.txt
-      #     sf org login sfdx-url --sfdx-url-file auth-url-BAT.txt
-      #     sfdx force:source:deploy --manifest package/package.xml --targetusername tharivamshi@beyondtrust.com.bat  --checkonly
-          
-      # - name: Deploying to DM
-      #   run: |
-      #     SFDX_AUTH_URL="force://PlatformCLI::5Aep8616LhFaTvPjFZwf.1wt3Gh3PpfV7eq8MVLPg4kxhk7GCZ8z7NeeBPdIic6yCBt7PfNDk.eUWVmi11t3Ka8@beyondtrustcorp--dm.sandbox.my.salesforce.com"
-      #     echo $SFDX_AUTH_URL > auth-url-DM.txt 
-      #     sf org login sfdx-url --sfdx-url-file auth-url-DM.txt
-      #     sfdx force:source:deploy --manifest package/package.xml --targetusername tharivamshi@beyondtrust.com.dm  --checkonly
-          
