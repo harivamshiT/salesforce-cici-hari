@@ -116,7 +116,7 @@ jobs:
           IST_HOUR=${{ env.IST_HOUR }}
 
           # Check if current time is within 9 AM - 5:59 PM IST
-          if [[ "$IST_HOUR" -ge 1 && "$IST_HOUR" -le 2 ]]; then
+          if [[ "$IST_HOUR" -ge 2 && "$IST_HOUR" -le 3 ]]; then
             echo "PR is created within allowed time. ✅"
             exit 0
           fi
