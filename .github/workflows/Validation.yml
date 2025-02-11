@@ -109,6 +109,14 @@ jobs:
           
           echo "IST Time: $IST_HOUR:$IST_MINUTE"
           echo "IST_HOUR=$IST_HOUR" >> $GITHUB_ENV
+      - name: Fetch title
+        id: fetch-pr-title
+        env:
+          GITHUB_TOKEN: ${{ secrets.MY_GITHUB_TOKEN }}
+        run: |
+          PR_TITLE=$(gh pr view ${{ github.event.pull_request.number }} --json title -q '.title')
+          echo "Latest PR Title: $PR_TITLE"
+          echo "PR_TITLE=$PR_TITLE" >> $GITHUB_ENV
 
       - name: Validate PR timing
         run: |
